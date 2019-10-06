@@ -1,0 +1,66 @@
+
+module flopr #(parameter WIDTH = 8)
+	(
+		input clk, reset,
+		input [WIDTH-1:0] d,
+		output reg[WIDTH-1:0]
+	); //Parametrized D register
+//Asynchronous, active HIGH reset
+always @(posedge clk, posedge reset)
+	if(reset)	q <= 0;
+	else		q <=d;
+endmodule : flopr
+
+
+module flopren(input clk,
+				input reset,
+				input en,
+				input [3:0] d,
+				output reg[3:0] q);
+//Async reset with enable input
+always @(posedge clk, posedge reset)
+	if(reset)	q <= 4'b0;
+	else if(en)	q <= d;
+	else q <= q;
+endmodule : flopren
+
+
+
+module AND(
+	input [3:0] a,
+	input b,
+	output reg[3:0] p
+	);
+always @(*)
+begin
+	p[0] = a[0] & b;
+	p[1] = a[1] & b;
+	p[2] = a[2] & b;
+	p[3] = a[3] & b;
+end
+endmodule : AND
+
+
+
+module shift_zero #(parameter shift=0)(
+    input wire [3:0] in,
+    output wire [7:0] out //Turns the 4 bit value into an 8 bit output shifted 1
+ );
+   assign   out = in << shift;
+endmodule
+//6779
+
+
+module CLA_8Bit(
+	input [7:0] a,
+	input [7:0] b,
+	output [7:0] sum,
+
+
+	 );
+	wire cout8;
+
+	CLA_adder	res0 (.A(a[3:0]),.B(b[3:0]), .Cin(1'b0), .sum_out(sum[3:0]), .Cout(cout8);
+	CLA_adder	res1 (.A(a[7:4]),.B( b[7:4]), .Cin(cout8), .sum_out(sum[7:4]), .Cout(co2);
+
+endmodule : CLA_8Bit
