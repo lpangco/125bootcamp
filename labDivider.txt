@@ -1,0 +1,108 @@
+//Datapath module
+//inputs: LD, SL, SR, RST, CLK, Lin, Rin, regD
+//outputs: Q, R, RltY, cnt_out
+
+module DP(
+input clk, rst, sr, sel1, sel2, sel3, r_ld, r_sl, r_sr, x_sl, x_right, y_ld, cnt_ld, cnt_ce,
+input [3:0] X, Y,
+input [2:0] n,
+output [3:0] R, Q,
+output R_lt_y, err,
+output[2:0] cnt_out 
+	);
+
+wire[3:0] Xo, Yo;
+wire [4:0] sub_o, Ro, mux1_out;
+
+shift_reg shift_reg1();
+shift_reg shift_reg2();
+shift_reg shift_reg3();
+
+mux2 mux1();
+mux2 mux2();
+mux2 mux3();
+
+sub sub1();
+
+comp comp1();
+
+ud_counter ud_counter();
+assign err = (Y == 0) ? 1:0;
+
+endmodule : DP
+
+module shift_reg #(parameter width = 4)(
+	input rst, LD, SL, SR, clk, lin, rin,
+	input [width-1:0] D,
+	output reg [width-1:0] Q;
+	);
+always @(posedge clk)
+	begin
+		if(rst)
+			Q<=0;
+		else if(SL == 1 && LD == 0) begin
+			Q[width-1:1] <= {Q[width-2:0], 0}//concat
+			Q[0] = rin; 
+		end
+		else if(SR == 1 && LD == 0) begin
+			Q[width-1] <= lin; 
+			Q[width-2:0] = Q[width-1:1]
+		end
+			else Q = Q;
+	end
+endmodule : shift_reg
+
+
+module mux2 #(parameter width = 4)
+	(
+		input sl,
+		input [width-1:0] d1, d0,
+		output reg [width-1:0] out
+		);
+	always @(sl, d0, d1) 
+	begin
+		if(sl == 0)
+			assign y <= d0;
+		else
+			assign y <= d1;
+	end
+endmodule : mux2
+
+
+module sub #(parameter width = 4)(
+	input [width-1:0] a, b,
+	output reg [width-1:0] out,
+	);
+	always @(a, b, c)
+		assign out = a-b;
+endmodule : sub
+
+module comp(
+	input [3:0] a, b,
+	output res
+	);
+	assign res = (a < b);
+endmodule : comp
+
+
+
+
+module ud_counter(
+	input clk, rst, ce, ld, ud,
+	input[3:0] D,
+	output reg[3:0] Q,
+	);
+	always @(posedge clk)
+	begin
+		if(rst)
+			Q <= 0;
+		else if (ce == 0)
+			Q <= Q;
+		else if(ce == 1 && ld == 1)
+			Q <= D;
+		else if(ce == 1 && ld == 0 && ud == 0)
+			Q <= Q-1;
+		else
+			Q <= Q+1;
+	end
+endmodule : ud_counter
